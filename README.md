@@ -63,7 +63,7 @@ go mod tidy
 go run .
 ```
 
-The API starts on `http://localhost:8080`. Check it with:
+The API listens on the port set in `PORT`, or `8080` if it is not set. The examples below assume the default. Check it with:
 
 ```bash
 curl http://localhost:8080/health
@@ -79,12 +79,21 @@ npm run dev
 
 Open `http://localhost:3000`.
 
-The frontend calls the backend through relative `/api/*` paths (`/api/items`, `/api/upload`, `/api/download`). These need to be forwarded to the backend, for example with a rewrite in `frontend/next.config.js`:
+The frontend uses the `PORT` environment variable and falls back to `3000`. Set it in your shell when starting the server. Next.js picks the port before it loads `.env` files, so putting `PORT` in a `.env` file has no effect.
+
+```bash
+PORT=4000 npm run dev          # macOS / Linux / Git Bash
+$env:PORT=4000; npm run dev    # Windows PowerShell
+```
+
+The frontend calls the backend through relative `/api/*` paths (`/api/items`, `/api/upload`, `/api/download`). These need to be forwarded to the backend, for example with a rewrite in `frontend/next.config.js`. Reading the backend URL from an environment variable keeps it in step with the backend's `PORT`:
 
 ```js
+const backendUrl = process.env.BACKEND_URL || 'http://localhost:8080'
+
 module.exports = {
   async rewrites() {
-    return [{ source: '/api/:path*', destination: 'http://localhost:8080/:path*' }]
+    return [{ source: '/api/:path*', destination: `${backendUrl}/:path*` }]
   },
 }
 ```
@@ -134,6 +143,6 @@ Notes:
 | --- | --- | --- |
 | `backend/` | `go run .` | Start the API |
 | `backend/` | `go build -o textvault .` | Build a binary |
-| `frontend/` | `npm run dev` | Start the dev server on port 3000 |
+| `frontend/` | `npm run dev` | Start the dev server on `$PORT` (default 3000) |
 | `frontend/` | `npm run build` | Production build |
-| `frontend/` | `npm run start` | Serve the production build on port 3000 |
+| `frontend/` | `npm run start` | Serve the production build on `$PORT` (default 3000) |
